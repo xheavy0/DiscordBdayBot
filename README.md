@@ -1,6 +1,6 @@
 # 🎂 Discord Birthday Bot
 
-Discord ბოტი, რომელიც ავტომატურად ელოდება და ადღეგრძელებს სერვერის წევრებს დაბადების დღეზე.
+Discord ბოტი, რომელიც ავტომატურად ულოცავს  სერვერის წევრებს დაბადების დღეს.
 
 ---
 
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 ### 2. Discord Bot შექმნა
 
-1. გადი [Discord Developer Portal](https://discord.com/developers/applications)
+1. გადადი [Discord Developer Portal](https://discord.com/developers/applications)
 2. **New Application** → სახელი
 3. **Bot** tab → **Add Bot**
 4. **Reset Token** → დააკოპირე Token
