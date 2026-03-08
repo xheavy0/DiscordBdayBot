@@ -7,11 +7,11 @@ from datetime import datetime
 import asyncio
 
 # ============================
-# ᲙᲝᲜᲤᲘᲒᲣᲠᲐᲪᲘᲐ - შეცვალე ეს!
+# ᲙᲝᲜᲤᲘᲒᲣᲠᲐᲪᲘᲐ
 # ============================
-BOT_TOKEN = "შენი_ტოკენი"  # ← შეცვალე შენი რეალური token-ით
-BIRTHDAY_CHANNEL_ID = 1480188020123766794  # ← შეცვალე შენი channel ID-ით
-CHECK_HOUR = 9   # რომელ საათზე გამოაქვეყნოს (UTC) — 9 UTC = 13:00 საქართველო
+BOT_TOKEN = "შენი თოკენი" #შეცვალე შენი ტოკენით
+BIRTHDAY_CHANNEL_ID = 1480188020123766794  # default channel, /birthday_setchannel-ით შეცვლა შეიძლება
+CHECK_HOUR = 9
 CHECK_MINUTE = 0
 
 DATA_FILE = "birthdays.json"
@@ -23,7 +23,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="/", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
 
@@ -88,7 +88,7 @@ async def birthday_add(interaction: discord.Interaction, day: int, month: int, y
     await interaction.response.send_message(
         f"✅ **დაბადების დღე დამახსოვრებულია!**\n"
         f"📅 {day} {month_names[month-1]}{year_str}\n"
-        f"🎂 მიირთვი ტორტი მაშინ! 🎉",
+        f"🎂 გილოცავ დაბადების დღეს! 🎉",
         ephemeral=True
     )
 
@@ -120,7 +120,7 @@ async def birthday_list(interaction: discord.Interaction):
                    "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"]
 
     sorted_birthdays = sorted(
-        data[guild_id].items(),
+        [(k, v) for k, v in data[guild_id].items() if k != "channel_id"],
         key=lambda x: (x[1]["month"], x[1]["day"])
     )
 
@@ -144,13 +144,13 @@ async def birthday_list(interaction: discord.Interaction):
             f"**{name}** — {bday['day']} {month_names[bday['month']-1]}{year_str} {birthday_emoji}"
         )
 
-    embed.description = "\n".join(lines)
+    embed.description = "\n".join(lines) if lines else "სია ცარიელია"
     embed.set_footer(text=f"სულ: {len(sorted_birthdays)} ადამიანი")
 
     await interaction.response.send_message(embed=embed)
 
 
-@tree.command(name="birthday_check", description="შეამოწმე ვისი დაბადების დღეა  დღეს")
+@tree.command(name="birthday_check", description="შეამოწმე ვის აქვს დაბადების დღე")
 async def birthday_check(interaction: discord.Interaction):
     await interaction.response.defer()
     result = await check_and_announce(interaction.guild, force=True)
@@ -195,6 +195,24 @@ async def birthday_admin_add(interaction: discord.Interaction, member: discord.M
     )
 
 
+@tree.command(name="birthday_setchannel", description="[ADMIN] დააყენე სად დაწეროს ბოტმა")
+@app_commands.checks.has_permissions(administrator=True)
+async def birthday_setchannel(interaction: discord.Interaction):
+    data = load_birthdays()
+    guild_id = str(interaction.guild_id)
+
+    if guild_id not in data:
+        data[guild_id] = {}
+
+    data[guild_id]["channel_id"] = interaction.channel_id
+    save_birthdays(data)
+
+    await interaction.response.send_message(
+        f"✅ ბოტი ახლა ამ channel-ში დაწერს დაბადების დღეებს! 🎂",
+        ephemeral=True
+    )
+
+
 # ============================
 # ავტომატური შემოწმება
 # ============================
@@ -209,7 +227,8 @@ async def check_and_announce(guild: discord.Guild, force: bool = False) -> bool:
     today = datetime.now()
     found = False
 
-    channel = guild.get_channel(BIRTHDAY_CHANNEL_ID)
+    channel_id = data.get(guild_id, {}).get("channel_id", BIRTHDAY_CHANNEL_ID)
+    channel = guild.get_channel(channel_id)
     if not channel:
         channel = next((c for c in guild.text_channels if c.permissions_for(guild.me).send_messages), None)
 
@@ -217,6 +236,8 @@ async def check_and_announce(guild: discord.Guild, force: bool = False) -> bool:
         return False
 
     for user_id, bday in data[guild_id].items():
+        if user_id == "channel_id":
+            continue
         if bday["day"] == today.day and bday["month"] == today.month:
             member = guild.get_member(int(user_id))
             if member:
@@ -229,8 +250,8 @@ async def check_and_announce(guild: discord.Guild, force: bool = False) -> bool:
                     title="🎂 დაბადების დღე! 🎉",
                     description=(
                         f"გილოცავ დაბადების დღეს, {member.mention}! 🥳🎊\n"
-                        f"{age_str}\n\n"
-                        f"სერვერის ყველა წევრმა უსურვეთ ბედნიერება! ❤️"
+                        f"{age_str}\n✨\n"
+                        f"მივულოცოთ ყველამ ერთად! ❤️"
                     ),
                     color=discord.Color.gold()
                 )
