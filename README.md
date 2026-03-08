@@ -79,6 +79,7 @@ python bot.py
 | `/birthday_list` | სერვერზე ყველას ბდღ-ების ნახვა |
 | `/birthday_check` | ხელით შეამოწმე დღეს ვის ბდღ აქვს |
 | `/birthday_admin_add` | [Admin] სხვისი ბდღ-ს დამატება |
+| `/birthday_admin_remove` | [Admin] სხვისი ბდღ-ს წაშლა |
 
 ---
 
