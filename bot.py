@@ -194,7 +194,26 @@ async def birthday_admin_add(interaction: discord.Interaction, member: discord.M
         ephemeral=True
     )
 
+@tree.command(name="birthday_admin_remove", description="[ADMIN] სხვა მომხმარებლის ბდღ წაშლა")
+@app_commands.describe(member="მომხმარებელი")
+@app_commands.checks.has_permissions(administrator=True)
+async def birthday_admin_remove(interaction: discord.Interaction, member: discord.Member):
+    data = load_birthdays()
+    guild_id = str(interaction.guild_id)
+    user_id = str(member.id)
 
+    if guild_id in data and user_id in data[guild_id]:
+        del data[guild_id][user_id]
+        save_birthdays(data)
+        await interaction.response.send_message(
+            f"🗑️ **{member.display_name}**-ის დაბადების დღე წაიშალა.",
+            ephemeral=True
+        )
+    else:
+        await interaction.response.send_message(
+            f"❌ **{member.display_name}**-ის დაბადების დღე არარის შენახული.",
+            ephemeral=True
+        )
 @tree.command(name="birthday_setchannel", description="[ADMIN] დააყენე სად დაწეროს ბოტმა")
 @app_commands.checks.has_permissions(administrator=True)
 async def birthday_setchannel(interaction: discord.Interaction):
