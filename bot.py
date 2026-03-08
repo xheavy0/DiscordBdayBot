@@ -9,7 +9,7 @@ import asyncio
 # ============================
 # ᲙᲝᲜᲤᲘᲒᲣᲠᲐᲪᲘᲐ - შეცვალე ეს!
 # ============================
-BOT_TOKEN = "NTgzNjEyMjUyNTUzMzQ3MDgx.Gwd-di.-isUE7lCSkrm6nMwVa9sFiDat7xiMyYuVb69qk"  # ← შეცვალე შენი რეალური token-ით
+BOT_TOKEN = "შენი_ტოკენი"  # ← შეცვალე შენი რეალური token-ით
 BIRTHDAY_CHANNEL_ID = 1480188020123766794  # ← შეცვალე შენი channel ID-ით
 CHECK_HOUR = 9   # რომელ საათზე გამოაქვეყნოს (UTC) — 9 UTC = 13:00 საქართველო
 CHECK_MINUTE = 0
