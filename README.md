@@ -101,6 +101,8 @@ docker run -d --name birthday-bot birthday-bot
 
 ---
 
+## :aws: AWS ზე დაჰოსტვა!
+
 ## 📁 ფაილები
 
 - `bot.py` — მთავარი ბოტის კოდი
