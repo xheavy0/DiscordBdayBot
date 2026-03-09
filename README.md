@@ -101,7 +101,96 @@ docker run -d --name birthday-bot birthday-bot
 
 ---
 
-## :aws: AWS ზე დაჰოსტვა!
+☁️ AWS EC2-ზე Hosting (უფასო 12 თვე) (ისედაც არ ჯდება ძვირი)
+1. EC2 Instance შექმნა
+
+AWS Console → EC2 → Launch Instance
+სახელი: birthday-bot
+OS: Ubuntu 22.04 LTS
+Instance type: t2.micro (Free Tier)
+Key pair → Create new key pair → გადმოწერე .pem ფაილი
+Launch Instance
+
+2. Security Group — პორტი გახსენი
+
+EC2 → შენი Instance → Security tab
+Security Group → Edit Inbound Rules
+დაამატე: SSH → My IP
+
+3. SSH დაკავშირება
+bash# Windows (PowerShell) / Mac / Linux
+ssh -i "key.pem" ubuntu@შენი_EC2_PUBLIC_IP
+Windows-ზე თუ PEM-ის უფლება სჭირდება:
+powershellicacls "key.pem" /inheritance:r /grant:r "%username%:R"
+
+🔒 Security best practice-ი:
+იუზერის შექმნა
+sudo useradd -r -s /bin/false birthdaybot
+
+# საქაღალდის უფლება
+sudo chown -R birthdaybot:birthdaybot /root/DiscordBdayBot
+
+# საქაღალდე გადაიტანე /opt-ში (უკეთესია)
+sudo mv /სადაც ჰაქბს ფაილი/DiscordBdayBot /opt/DiscordBdayBot
+sudo chown -R birthdaybot:birthdaybot /opt/DiscordBdayBot
+4. სერვერის მომზადება
+sudo apt update
+sudo apt install python3 python3-pip git -y
+pip3 install discord.py --break-system-packages
+5. კოდის ჩამოტვირთვა GitHub-იდან
+bashgit clone https://github.com/ᲨᲔᲜᲘ_USERNAME/birthday-bot.git
+cd birthday-bot
+6. Systemd Service შექმნა (24/7 გასაშვებად)
+sudo vim /etc/systemd/system/birthday-bot.service
+ჩასვი ეს:
+[Unit]
+Description=Birthday Bot
+After=network.target
+
+[Service]
+User=birthdaybot
+WorkingDirectory=/opt/DiscordBdayBot
+Environment="BOT_TOKEN=შენი_ტოკენი"
+ExecStart=/usr/bin/python3 bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+Vim-ის საბაზისო კომანდები თუ დაგჭირდა:
+
+i — რედაქტირების რეჟიმი
+Esc — გამოსვლა რედაქტირებიდან
+:wq — შენახვა და გასვლა
+:q! — გასვლა შენახვის გარეშე
+
+sudo systemctl daemon-reload
+sudo systemctl enable birthday-bot
+sudo systemctl start birthday-bot
+7. სტატუსის შემოწმება
+sudo systemctl status birthday-bot
+🟢 Active: active (running) — მუშაობს!
+
+🔄 კოდის განახლება
+GitHub-ზე ცვლილების შემდეგ AWS-ზე:
+cd /opt/birthday-bot
+git pull
+sudo systemctl restart birthday-bot
+
+🛠️ სასარგებლო კომანდები
+
+sudo systemctl status birthday-bot
+
+# ლოგები
+sudo journalctl -u birthday-bot -n 50
+
+# გადატვირთვა
+sudo systemctl restart birthday-bot
+
+# გაჩერება
+sudo systemctl stop birthday-bot
+
 
 ## 📁 ფაილები
 
