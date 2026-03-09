@@ -155,7 +155,7 @@ sudo systemctl stop birthday-bot
 
 ## 🔒 Security
 
-იხილე `AWS_SECURITY.md` — სრული security გაიდი:
+იხილე `AWS_SECURITY` — სრული security გაიდი:
 - Root SSH დაბლოკვა
 - SSH Key-Only შესვლა
 - UFW Firewall
