@@ -1,2 +1,46 @@
-Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): 2026-03-09 07:40:40
-Current User's Login: xheavy0
+# AWS EC2 Security Best Practices
+
+## Root Blocking
+- **Disable root access:** Only use the root account to create your first IAM user.
+- **Enable MFA on the root account.**
+
+## Least Privilege Principle
+- Grant only the permissions necessary for users to perform their tasks.
+
+## IAM Roles and Policies
+- Use IAM roles for application access to AWS resources.
+- Regularly rotate access keys.
+
+## VPC Security
+- Configure security groups and network ACLs to control inbound and outbound traffic.
+- Deploy instances in a private subnet when possible.
+
+## Instance Security
+- Regularly update and patch your instances.
+- Implement host-based firewalls.
+
+## Logging and Monitoring
+- Enable AWS CloudTrail for auditing and logging API calls.
+- Use Amazon CloudWatch for monitoring instance performance and security metrics.
+
+## Data Protection
+- Encrypt data at rest and in transit using AWS Key Management Service (KMS).
+
+## Backup and Recovery
+- Implement automated backups using Amazon EBS snapshots.
+
+## Incident Response
+- Develop an incident response plan and regularly test it.
+
+## Compliance
+- Ensure compliance with relevant regulatory requirements (e.g., GDPR, HIPAA).
+
+## Security Benchmarking
+- Regularly assess your security posture against AWS security best practices.
+
+## Security Checklist
+- [ ] Enable CloudTrail logging.
+- [ ] Apply the principle of least privilege.
+- [ ] Regularly patch and update instances.
+- [ ] Enable multi-factor authentication (MFA).
+- [ ] Review IAM roles and permissions regularly.
