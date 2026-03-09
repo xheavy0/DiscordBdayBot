@@ -1,0 +1,220 @@
+# 🔒 AWS EC2 Security Best Practices
+
+## 1. Root-ის დაბლოკვა და ახალი Admin იუზერის შექმნა
+
+```bash
+# ახალი იუზერის შექმნა
+sudo adduser admin_user
+
+# sudo უფლების მინიჭება
+sudo usermod -aG sudo admin_user
+
+# გადართვა ახალ იუზერზე
+su - admin_user
+
+# SSH key კოპირება ახალ იუზერზე
+mkdir ~/.ssh
+sudo cp /root/.ssh/authorized_keys ~/.ssh/
+sudo chown -R admin_user:admin_user ~/.ssh
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+---
+
+## 2. Root SSH შესვლის დაბლოკვა
+
+```bash
+sudo vim /etc/ssh/sshd_config
+```
+
+იპოვე და შეცვალე:
+```
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+```
+
+გადატვირთე SSH:
+```bash
+sudo systemctl restart sshd
+```
+
+⚠️ **სანამ გადახვალ, ახალი იუზერით SSH-ს გამოსცადე ახალ ტერმინალში!**
+
+---
+
+## 3. Root პაროლის დაყენება (საჭიროების შემთხვევაში)
+
+```bash
+sudo passwd root
+```
+
+მაგრამ უკეთესია root პაროლი **გამორთო** და მხოლოდ SSH key გამოიყენო:
+```bash
+sudo passwd -l root
+```
+
+---
+
+## 4. Firewall (UFW) კონფიგურაცია
+
+```bash
+# UFW ინსტალაცია
+sudo apt install ufw -y
+
+# ნაგულისხმევი პოლიტიკა
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# SSH დაშვება (მნიშვნელოვანია, თორემ ჩაიკეტება!)
+sudo ufw allow ssh
+
+# Firewall ჩართვა
+sudo ufw enable
+
+# სტატუსის შემოწმება
+sudo ufw status verbose
+```
+
+---
+
+## 5. SSH Key-Only შესვლა (პაროლის გარეშე)
+
+```bash
+sudo vim /etc/ssh/sshd_config
+```
+
+```
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM no
+```
+
+```bash
+sudo systemctl restart sshd
+```
+
+---
+
+## 6. Fail2Ban — Brute Force დაცვა
+
+```bash
+# ინსტალაცია
+sudo apt install fail2ban -y
+
+# კონფიგურაცია
+sudo vim /etc/fail2ban/jail.local
+```
+
+ჩასვი:
+```ini
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 5
+
+[sshd]
+enabled = true
+port = ssh
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
+```
+
+```bash
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+# სტატუსი
+sudo fail2ban-client status sshd
+```
+
+---
+
+## 7. ბოტის იუზერი (Least Privilege)
+
+```bash
+# სერვის იუზერის შექმნა (შესვლის გარეშე)
+sudo useradd -r -s /bin/false birthdaybot
+
+# საქაღალდის გადატანა და უფლებების მინიჭება
+sudo mv /root/DiscordBdayBot /opt/DiscordBdayBot
+sudo chown -R birthdaybot:birthdaybot /opt/DiscordBdayBot
+chmod 750 /opt/DiscordBdayBot
+```
+
+სერვის ფაილი:
+```bash
+sudo vim /etc/systemd/system/birthday-bot.service
+```
+
+```ini
+[Unit]
+Description=Birthday Bot
+After=network.target
+
+[Service]
+User=birthdaybot
+Group=birthdaybot
+WorkingDirectory=/opt/DiscordBdayBot
+Environment="BOT_TOKEN=შენი_ტოკენი"
+ExecStart=/usr/bin/python3 bot.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart birthday-bot
+```
+
+---
+
+## 8. სისტემის განახლება (ავტომატური)
+
+```bash
+sudo apt install unattended-upgrades -y
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+```
+
+---
+
+## 9. შემოწმების Checklist
+
+```bash
+# ვინ არის შესული სისტემაში
+who
+
+# ბოლო შესვლები
+last
+
+# გახსნილი პორტები
+sudo ss -tlnp
+
+# გაშვებული სერვისები
+sudo systemctl list-units --type=service --state=running
+
+# Fail2ban სტატუსი
+sudo fail2ban-client status
+
+# UFW სტატუსი
+sudo ufw status
+```
+
+---
+
+## ✅ Security Checklist
+
+- [ ] Root SSH შესვლა დაბლოკილია
+- [ ] პაროლით შესვლა გამორთულია
+- [ ] SSH Key-Only შესვლა ჩართულია
+- [ ] UFW Firewall აქტიურია
+- [ ] Fail2Ban მუშაობს
+- [ ] ბოტი root-ის გარეშე მუშაობს
+- [ ] სისტემა განახლებულია
+- [ ] Root პაროლი გამორთულია
