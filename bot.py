@@ -297,23 +297,17 @@ async def birthday_task():
 
 @bot.event
 async def on_ready():
-    print(f"✅ ბოტი გაეშვა: {bot.user}")
-    print(f"📡 სერვერები: {len(bot.guilds)}")
-
-    try:
-        synced = await tree.sync()
-        print(f"🔄 Slash commands სინქრონიზებულია: {len(synced)}")
-    except Exception as e:
-        print(f"❌ Sync error: {e}")
-
-    birthday_task.start()
-    print(f"⏰ Birthday checker გაეშვა (ყოველ {CHECK_HOUR:02d}:{CHECK_MINUTE:02d} UTC)")
+    print(f"✅  ბოტი გაეშვა: {bot.user}")
+    print(f"📡  სერვერები: {len(bot.guilds)}")
+    setup_event_commands(tree, bot)
+    try:print(f"🔄a Slash commands სინქრონიზებულია: {len(synced)}")
+    birthday_task.start()rror: {e}")
+    print(f"⏰  Birthday checker გაეშვა (ყოველ {CHECK_HOUR:02d}:{CHECK_MINUTE:02d} UTC)")
 
 
 @birthday_task.before_loop
 async def before_birthday_task():
     await bot.wait_until_ready()
-
 
 # ============================
 # გაშვება
