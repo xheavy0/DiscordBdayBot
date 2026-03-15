@@ -23,10 +23,19 @@ def setup_event_commands(tree, bot):
     @tree.command(name="event_setchannel", description="[ADMIN] დააყენე Forum Channel სადაც ივენთები გამოჩნდება")
     @app_commands.checks.has_permissions(administrator=True)
     async def event_setchannel(interaction: discord.Interaction):
-        # შევამოწმოთ Forum Channel-ია
-        if not isinstance(interaction.channel, discord.ForumChannel):
+        # შევამოწმოთ Forum Thread-ია
+        if not isinstance(interaction.channel, discord.Thread):
             await interaction.response.send_message(
-                "❌ ეს Forum Channel არ არის! Forum Channel-ში გაუშვი ეს command.",
+                "❌ Forum Channel-ის **Post-ში** გაუშვი ეს command!",
+                ephemeral=True
+            )
+            return
+
+        # Forum Channel-ის ID ვიღებთ Thread-იდან
+        forum_channel = interaction.channel.parent
+        if not isinstance(forum_channel, discord.ForumChannel):
+            await interaction.response.send_message(
+                "❌ ეს Forum Channel არ არის!",
                 ephemeral=True
             )
             return
@@ -37,11 +46,11 @@ def setup_event_commands(tree, bot):
         if guild_id not in data:
             data[guild_id] = {}
 
-        data[guild_id]["event_channel_id"] = interaction.channel_id
+        data[guild_id]["event_channel_id"] = forum_channel.id
         save_data(data)
 
         await interaction.response.send_message(
-            f"✅ ივენთები ამ Forum Channel-ში გამოჩნდება!",
+            f"✅ ივენთები **{forum_channel.name}** channel-ში გამოჩნდება!",
             ephemeral=True
         )
 
@@ -86,7 +95,7 @@ def setup_event_commands(tree, bot):
 
         if not event_channel_id:
             await interaction.followup.send(
-                "❌ Forum Channel არ არის დაყენებული! გაუშვი `/event_setchannel` Forum Channel-ში.",
+                "❌ Forum Channel არ არის დაყენებული! გაუშვი `/event_setchannel` Forum-ის ნებისმიერ Post-ში.",
                 ephemeral=True
             )
             return
