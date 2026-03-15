@@ -23,7 +23,6 @@ def setup_event_commands(tree, bot):
     @tree.command(name="event_setchannel", description="[ADMIN] დააყენე Forum Channel სადაც ივენთები გამოჩნდება")
     @app_commands.checks.has_permissions(administrator=True)
     async def event_setchannel(interaction: discord.Interaction):
-        # შევამოწმოთ Forum Thread-ია
         if not isinstance(interaction.channel, discord.Thread):
             await interaction.response.send_message(
                 "❌ Forum Channel-ის **Post-ში** გაუშვი ეს command!",
@@ -31,7 +30,6 @@ def setup_event_commands(tree, bot):
             )
             return
 
-        # Forum Channel-ის ID ვიღებთ Thread-იდან
         forum_channel = interaction.channel.parent
         if not isinstance(forum_channel, discord.ForumChannel):
             await interaction.response.send_message(
@@ -71,7 +69,6 @@ def setup_event_commands(tree, bot):
     ):
         await interaction.response.defer(ephemeral=True)
 
-        # თარიღის პარსინგი
         try:
             event_dt = datetime.strptime(f"{date} {time}", "%d/%m/%Y %H:%M")
         except ValueError:
@@ -88,7 +85,6 @@ def setup_event_commands(tree, bot):
             )
             return
 
-        # Forum Channel-ის პოვნა
         data = load_data()
         guild_id = str(interaction.guild_id)
         event_channel_id = data.get(guild_id, {}).get("event_channel_id")
@@ -109,11 +105,9 @@ def setup_event_commands(tree, bot):
             )
             return
 
-        # @მოქეიფე როლის პოვნა
         mokeife_role = discord.utils.get(interaction.guild.roles, name="მოქეიფე")
         role_mention = mokeife_role.mention if mokeife_role else "@everyone"
 
-        # Embed
         embed = discord.Embed(
             title=f"🎉 {name}",
             description=description if description else "",
@@ -124,28 +118,81 @@ def setup_event_commands(tree, bot):
         embed.add_field(name="👤 შექმნა", value=interaction.user.mention, inline=True)
         embed.set_footer(text="⏳ Poll 24 საათში დაიხურება")
 
-        # Poll
         poll = discord.Poll(
-            question=discord.PollMedia(text=f"მოხვალ?"),
+            question=discord.PollMedia(text="მოხვალ?"),
             duration=timedelta(hours=24),
             multiple=False
         )
         poll.add_answer(text="მოვდივარ! 🟢", emoji="✅")
         poll.add_answer(text="არ მოვდივარ", emoji="❌")
 
-        # Forum Post შექმნა
         try:
             thread, message = await forum_channel.create_thread(
                 name=f"🎉 {name} — {date}",
                 content=f"{role_mention} ახალი ივენთი! 🎊",
-                embed=embed,
-                poll=poll
+                embed=embed
             )
+            await thread.send(poll=poll)
         except Exception as e:
             await interaction.followup.send(f"❌ Post შექმნა ვერ მოხერხდა: {e}", ephemeral=True)
             return
 
         await interaction.followup.send(
             f"✅ ივენთი შეიქმნა! {thread.jump_url}",
+            ephemeral=True
+        )
+
+    @tree.command(name="delete_event", description="[ADMIN] წაშალე ივენთი Forum-იდან")
+    @app_commands.describe(event_name="ივენთის სახელი (ან მისი ნაწილი)")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def delete_event(interaction: discord.Interaction, event_name: str):
+        await interaction.response.defer(ephemeral=True)
+
+        data = load_data()
+        guild_id = str(interaction.guild_id)
+        event_channel_id = data.get(guild_id, {}).get("event_channel_id")
+
+        if not event_channel_id:
+            await interaction.followup.send(
+                "❌ Forum Channel არ არის დაყენებული!",
+                ephemeral=True
+            )
+            return
+
+        forum_channel = interaction.guild.get_channel(event_channel_id)
+
+        if not forum_channel or not isinstance(forum_channel, discord.ForumChannel):
+            await interaction.followup.send(
+                "❌ Forum Channel ვერ მოიძებნა!",
+                ephemeral=True
+            )
+            return
+
+        # ვეძებთ thread-ს სახელით
+        found_thread = None
+        for thread in forum_channel.threads:
+            if event_name.lower() in thread.name.lower():
+                found_thread = thread
+                break
+
+        if not found_thread:
+            # Archived threads-ებშიც ვეძებთ
+            async for thread in forum_channel.archived_threads():
+                if event_name.lower() in thread.name.lower():
+                    found_thread = thread
+                    break
+
+        if not found_thread:
+            await interaction.followup.send(
+                f"❌ ივენთი **{event_name}** ვერ მოიძებნა!",
+                ephemeral=True
+            )
+            return
+
+        thread_name = found_thread.name
+        await found_thread.delete()
+
+        await interaction.followup.send(
+            f"🗑️ ივენთი **{thread_name}** წაიშალა!",
             ephemeral=True
         )
