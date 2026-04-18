@@ -38,27 +38,7 @@ Discord ბოტი, რომელიც ავტომატურად �
 
 ---
 
-## ☁️ AWS EC2-ზე Hosting (უფასო 12 თვე)
 
-### 1. EC2 Instance შექმნა
-
-1. [AWS Console](https://console.aws.amazon.com) → **EC2** → **Launch Instance**
-2. სახელი: `birthday-bot`
-3. OS: **Ubuntu 22.04 LTS**
-4. Instance type: **t2.micro** (Free Tier)
-5. Key pair → **Create new key pair** → გადმოწერე `.pem` ფაილი
-6. **Launch Instance**
-
-### 2. SSH შეერთება
-
-```bash
-ssh -i "key.pem" ubuntu@შენი_EC2_PUBLIC_IP
-```
-
-Windows-ზე PEM უფლება:
-```powershell
-icacls "key.pem" /inheritance:r /grant:r "%username%:R"
-```
 
 ### 3. სერვერის მომზადება
 
