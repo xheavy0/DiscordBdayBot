@@ -280,7 +280,7 @@ async def check_and_announce(guild: discord.Guild, force: bool = False) -> bool:
                     description=(
                         f"გილოცავ დაბადების დღეს, {member.mention}! 🥳🎊\n"
                         f"{age_str}\n✨\n"
-                        f"სერვერის ყველა წევრმა უსურვეთ ბედნიერება! ❤️"
+                        f"მივულოცოთ ყველამ ერთად! ❤️"
                     ),
                     color=discord.Color.gold()
                 )
