@@ -276,7 +276,7 @@ async def check_and_announce(guild: discord.Guild, force: bool = False) -> bool:
                     age_str = f"\n🔢 დღეს **{age}** წლის გახდა!"
 
                 embed = discord.Embed(
-                    title="🎂 დაბადების დღე! 🎉",
+                    title="🎂 დღეს დიდი დღეა დიდი! 🎉",
                     description=(
                         f"გილოცავ დაბადების დღეს, {member.mention}! 🥳🎊\n"
                         f"{age_str}\n✨\n"
