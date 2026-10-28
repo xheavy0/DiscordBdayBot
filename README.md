@@ -11,11 +11,21 @@ Discord ბოტი, რომელიც ავტომატურად �
 | `/birthday_add` | შენი დაბადების დღის დამატება |
 | `/birthday_remove` | შენი ბდღ-ს წაშლა |
 | `/birthday_list` | სერვერზე ყველას ბდღ-ების ნახვა |
+| `/birthday_next` | უახლოესი დაბადების დღეები და რამდენი დღეა დარჩენილი |
 | `/birthday_check` | ხელით შეამოწმე დღეს ვის ბდღ აქვს |
 | `/birthday_setchannel` | [Admin] ბდღ channel-ის დაყენება |
+| `/birthday_role` | [Admin] როლი, რომელსაც იუბილარი თავის დღეს მიიღებს (როლის გარეშე ბოტი ახალს შექმნის) |
+| `/birthday_role_off` | [Admin] Birthday როლის გამორთვა |
+| `/birthday_reminder` | [Admin] შეხსენება ბდღ-მდე 1–14 დღით ადრე, არხში ან ადმინებს DM-ში |
 | `/birthday_admin_add` | [Admin] სხვისი ბდღ-ს დამატება |
 | `/birthday_admin_remove` | [Admin] სხვისი ბდღ-ს წაშლა |
-| `/create_event` | ახალი ივენთის შექმნა + Poll |
+| `/birthday_message` | [Admin] პირადი მილოცვა კონკრეტული ადამიანისთვის (ერთჯერადი ან ყოველწლიური, სურვილისამებრ DM-შიც) |
+| `/birthday_message_remove` | [Admin] პირადი მილოცვის წაშლა |
+| `/birthday_template_add` | [Admin] სერვერის მილოცვის შაბლონის დამატება |
+| `/birthday_template_list` | [Admin] შაბლონების სია |
+| `/birthday_template_remove` | [Admin] შაბლონის წაშლა ნომრით |
+| `/create_event` | ახალი ივენთის შექმნა + Poll (დრო საქართველოს დროით) |
+| `/events` | მომავალი ივენთების სია, ბმულებით და „მოდის“ ხმების რაოდენობით |
 | `/delete_event` | [Admin] ივენთის წაშლა Forum-იდან |
 | `/event_setchannel` | [Admin] ივენთების Forum Channel-ის დაყენება |
 | `/help` | ბოტის ყველა command-ის სია |
@@ -33,7 +43,7 @@ Discord ბოტი, რომელიც ავტომატურად �
    - ✅ `MESSAGE CONTENT INTENT`
 6. **OAuth2 → URL Generator**:
    - Scopes: `bot`, `applications.commands`
-   - Permissions: `Send Messages`, `Embed Links`, `Read Message History`
+   - Permissions: `Send Messages`, `Embed Links`, `Attach Files`, `Read Message History`, `Manage Roles` (Birthday როლისთვის), `Manage Threads` (ივენთების დახურვისთვის)
 7. გენერირებული ლინკით ბოტი სერვერს დაამატე
 
 ---
@@ -44,9 +54,11 @@ Discord ბოტი, რომელიც ავტომატურად �
 
 ```bash
 sudo apt update
-sudo apt install python3 python3-pip git -y
-pip3 install discord.py --break-system-packages
+sudo apt install python3 python3-pip git fonts-noto-core -y
+pip3 install -U "discord.py>=2.4.0" Pillow --break-system-packages
 ```
+
+`fonts-noto-core` ბარათზე ქართული ტექსტისთვისაა. ფონტის გარეშე ბოტი ბარათს არ დახატავს და ჩვეულებრივ მილოცვას გააგზავნის.
 
 ### 4. კოდის ჩამოტვირთვა
 
@@ -150,13 +162,37 @@ sudo systemctl stop birthday-bot
 
 ## ⏰ საათის ზონა
 
-ბოტი UTC-ს იყენებს. საქართველო = UTC+4:
+ბოტი საქართველოს დროს იყენებს (UTC+4). მილოცვის საათი `bot.py`-შია:
 
-| საქართველო | UTC (კოდში) |
-|---|---|
-| 09:00 🇬🇪 | `CHECK_HOUR = 5` |
-| 12:00 🇬🇪 | `CHECK_HOUR = 8` |
-| 13:00 🇬🇪 | `CHECK_HOUR = 9` |
+```python
+CHECK_HOUR = 13    # საქართველოს დროით
+CHECK_MINUTE = 0
+```
+
+თუ ბოტი ამ დროს გათიშული იყო, ჩართვისთანავე მიულოცავს. ერთ ადამიანს წელიწადში მხოლოდ ერთხელ ულოცავს.
+
+## 💌 მილოცვის ტექსტები
+
+ნაგულისხმევი მილოცვები `birthday_messages.py`-შია, ბოტი შემთხვევით ირჩევს ერთ-ერთს.
+ტექსტში შეგიძლია გამოიყენო `{mention}` (მონიშვნა) და `{name}` (სახელი), slash command-ში ახალი ხაზისთვის კი `\n`.
+თუ სერვერზე `/birthday_template_add`-ით დაამატებ შაბლონებს, ნაგულისხმევის ნაცვლად ისინი გამოიყენება.
+`/birthday_message`-ით დაყენებული პირადი მილოცვა ყოველთვის შაბლონზე წინ დგას.
+
+## 🖼️ ბარათი
+
+მილოცვას თან ახლავს სურათი: იუბილარის მრგვალი ფოტო, სახელი და ასაკი.
+ფონი: `assets/birthday_bg.png` (ან `.jpg`), საუკეთესო ზომა 1000×400. თუ ფაილი არ არის, ბოტი სადა ფონს იყენებს.
+
+## 💌 მილოცვების ბარათი
+
+მილოცვის ქვეშ არის ღილაკი „✍️ მილოცვის დაწერა“. ყველა წერს თავის მილოცვას, 21:00-ზე (`WISHES_HOUR`)
+ბოტი ყველაფერს ერთად უგზავნის იუბილარს პირადში. თუ DM დახურული აქვს, ბარათი ბდღ channel-ში გამოჩნდება.
+
+## 🎉 ივენთები
+
+- შეხსენება ივენთამდე 24 საათით და 1 საათით ადრე, Post-ში. ბოტი მონიშნავს ყველას, ვინც „მოვდივარ“ აირჩია.
+- დაწყებიდან 12 საათში Post ავტომატურად იხურება (✅ + lock).
+- ეს მუშაობს ამ განახლების შემდეგ შექმნილ ივენთებზე.
 
 ---
 
@@ -165,6 +201,11 @@ sudo systemctl stop birthday-bot
 | ფაილი | აღწერა |
 |---|---|
 | `bot.py` | მთავარი ბოტის კოდი |
+| `birthday_messages.py` | ნაგულისხმევი მილოცვის ტექსტები |
+| `card.py` | ბარათის სურათის დახატვა |
+| `storage.py` | საერთო: საქართველოს დრო და `birthdays.json` |
+| `assets/birthday_bg.png` | ბარათის ფონი (სურვილისამებრ) |
+| `event_cog.py` | ივენთების ბრძანებები |
 | `birthdays.json` | ავტომატურად იქმნება, ინახავს ბდღ-ებს |
 | `requirements.txt` | Python dependencies |
 | `Procfile` | Koyeb/Railway-სთვის |
